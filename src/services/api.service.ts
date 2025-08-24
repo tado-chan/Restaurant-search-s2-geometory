@@ -14,9 +14,9 @@ export class ApiService {
 
   async searchNearbyRestaurant(coordinates: SearchRequest): Promise<BuildingSearchResponse> {
     try {
-      console.log('Calling real API:', `${this.baseUrl}/search`);
+      console.log('Calling real API:', `${this.baseUrl}/search/`);
       const response = await firstValueFrom(
-        this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search`, coordinates)
+        this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search/`, coordinates)
       );
       console.log('API Response:', response);
       return response;
@@ -28,9 +28,9 @@ export class ApiService {
 
   async searchNearbyRestaurantOptimized(coordinates: SearchRequest): Promise<OptimizedBuildingResponse> {
     try {
-      console.log('Calling optimized API:', `${this.baseUrl}/search/optimized`);
+      console.log('Calling optimized API:', `${this.baseUrl}/search/optimized/`);
       const response = await firstValueFrom(
-        this.http.post<OptimizedBuildingResponse>(`${this.baseUrl}/search/optimized`, coordinates)
+        this.http.post<OptimizedBuildingResponse>(`${this.baseUrl}/search/optimized/`, coordinates)
       );
       console.log('Optimized API Response:', response);
       return response;

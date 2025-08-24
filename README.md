@@ -40,13 +40,19 @@ USE restaurant_search_app;
 ### 💻 2. バックエンドAPI起動
 
 ```bash
-cd backend
-npm install
+cd backend_django
+
+# 仮想環境作成・有効化
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+
+pip install -r requirements.txt
 
 # .env ファイル編集（MySQLパスワード設定）
 # DB_PASSWORD=your_mysql_password
 
-npm start  # http://localhost:3000
+python manage.py runserver 8000  # http://localhost:8000
 ```
 
 ### 🌐 3. フロントエンド起動
@@ -64,7 +70,7 @@ npm start  # http://localhost:4200
 export const environment = {
   production: false,
   googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-  apiBaseUrl: 'http://localhost:3000/api'
+  apiBaseUrl: 'http://localhost:8000/api'
 };
 ```
 
@@ -90,9 +96,11 @@ export const environment = {
 - **Angular Signals** - リアクティブ状態管理
 
 ### バックエンド
-- **Node.js + Express** - RESTful API サーバー
+- **Django 4.2** - Python Webフレームワーク
+- **SQLAlchemy 2.0** - ORM (Object-Relational Mapping)
+- **Django REST Framework** - RESTful API構築
 - **MySQL 8.0** - レストラン・OSM建物データ保存
-- **mysql2** - データベースドライバー
+- **PyMySQL** - MySQLドライバー
 
 ### データソース
 - **OpenStreetMap (OSM)** - 建物形状・OSM ID
@@ -113,10 +121,16 @@ restaurant-search-app/
 │   │   └── restaurant.ts          # TypeScript型定義
 │   └── 📁 environments/
 │       └── environment.ts         # 環境設定（Git管理外）
-├── 📁 backend/                      # バックエンドAPI
-│   ├── server.js                  # Express.js APIサーバー
-│   ├── package.json               # Node.js依存関係
-│   └── .env                       # データベース接続設定
+├── 📁 backend_django/               # バックエンドAPI
+│   ├── restaurant_search/         # Django プロジェクト
+│   ├── restaurants/               # レストランアプリ
+│   │   ├── models.py             # SQLAlchemyモデル
+│   │   ├── repositories.py       # Repository層
+│   │   ├── services.py           # Service層
+│   │   ├── views.py              # Views層（API）
+│   │   └── urls.py               # URL設定
+│   ├── requirements.txt          # Python依存関係
+│   └── .env                      # 環境変数
 └── 📁 database/                     # SQL ファイル
     ├── restaurant_schema.sql      # テーブル作成DDL
     ├── restaurant_data.sql        # レストランデータ
@@ -142,9 +156,9 @@ ng serve           # Angular CLI直接実行
 
 ### バックエンド
 ```bash
-cd backend
-npm start          # APIサーバー起動 (http://localhost:3000)
-npm run dev        # nodemon自動再起動モード
+cd backend_django
+python manage.py runserver 8000  # APIサーバー起動 (http://localhost:8000)
+python manage.py runserver        # デフォルトポート使用
 ```
 
 ## 🚨 トラブルシューティング
