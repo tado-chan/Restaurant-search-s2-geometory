@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Restaurant Search App</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 40px;
+      margin: 20px 0;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn {
+      display: inline-block;
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    .emoji { font-size: 2rem; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="emoji">🍽️</div>
+      <h1>Restaurant Search App</h1>
+      <p>Angular + Ionic + Google Maps でレストラン検索</p>
+      <p>OpenStreetMap 建物ポリゴンによるプライバシー配慮型アプリケーション</p>
+    </div>
+    
+    <div class="card">
+      <h3>🚀 アプリを開始</h3>
+      <p>地図をクリックしてレストランを検索できます</p>
+      <a href="/test.html" class="btn">
+        📱 アプリを開く
+      </a>
+    </div>
+
+    <div class="card">
+      <h3>✨ 実装済み機能</h3>
+      <ul style="text-align: left; display: inline-block;">
+        <li>🗺️ Google Maps 統合</li>
+        <li>🔄 リアクティブ状態管理 (Angular Signals)</li>
+        <li>🏢 OSM 建物ポリゴン描画</li>
+        <li>📱 Ionic ボトムシート UI</li>
+        <li>🔒 座標非露出 プライバシー保護</li>
+        <li>🌍 Overpass API 統合</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ 設定</h3>
+      <p><strong>Google Maps API Key を設定してください：</strong></p>
+      <p style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px;">
+        test.html → 15行目<br>
+        YOUR_API_KEY_HERE を実際のAPIキーに変更
+      </p>
+    </div>
+  </div>
+</body>
+</html>
