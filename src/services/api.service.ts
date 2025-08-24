@@ -13,31 +13,17 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   async searchNearbyRestaurant(coordinates: SearchRequest): Promise<BuildingSearchResponse> {
-    const url = `${this.baseUrl}/api/restaurants/search`;
-    
-    // Use actual backend API call
-    try {
-      return firstValueFrom(
-        this.http.post<BuildingSearchResponse>(url, coordinates)
-      );
-    } catch (error) {
-      // Fallback to mock if backend is not available
-      console.warn('Backend not available, using mock data:', error);
-      return this.getMockResponse();
-    }
+    // Skip backend call and use mock data directly for now
+    console.warn('Using mock data (backend not implemented yet)');
+    return this.getMockResponse();
   }
 
   async searchNearbyRestaurantOptimized(coordinates: SearchRequest): Promise<OptimizedBuildingResponse> {
-    const url = `${this.baseUrl}/api/restaurants/search-optimized`;
+    console.log('searchNearbyRestaurantOptimized called with:', coordinates);
     
-    try {
-      return firstValueFrom(
-        this.http.post<OptimizedBuildingResponse>(url, coordinates)
-      );
-    } catch (error) {
-      console.warn('Backend not available, using optimized mock data:', error);
-      return this.getMockOptimizedResponse();
-    }
+    // Skip backend call and use mock data directly for now
+    console.warn('Using mock data (backend not implemented yet)');
+    return this.getMockOptimizedResponse(coordinates);
   }
 
   private getMockResponse(): Promise<BuildingSearchResponse> {
@@ -46,7 +32,7 @@ export class ApiService {
       type: "Feature" as const,
       properties: {
         building: "residential",
-        osm_id: 123456,
+        osm_id: "way/123456",
         name: "Mock Building"
       },
       geometry: {
@@ -74,7 +60,7 @@ export class ApiService {
           rating: 4.2,
           lat: 35.6762,
           lng: 139.6503,
-          osmBuildingId: 123456
+          osmBuildingId: "way/123456"
         },
         buildingPolygon: mockBuildingPolygon,
         message: "建物が見つかりました"
@@ -88,7 +74,7 @@ export class ApiService {
           rating: 4.7,
           lat: 35.6765,
           lng: 139.6510,
-          osmBuildingId: 789012
+          osmBuildingId: "way/789012"
         },
         buildingPolygon: {
           ...mockBuildingPolygon,
@@ -116,13 +102,13 @@ export class ApiService {
           rating: 4.0,
           lat: 35.6713,
           lng: 139.6845,
-          osmBuildingId: 456789
+          osmBuildingId: "way/919304243"
         },
         buildingPolygon: {
           ...mockBuildingPolygon,
           properties: {
             building: "commercial",
-            osm_id: 456789,
+            osm_id: "way/919304243",
             name: "Asian Palm Building"
           },
           geometry: {
@@ -150,7 +136,29 @@ export class ApiService {
     });
   }
 
-  private getMockOptimizedResponse(): Promise<OptimizedBuildingResponse> {
+  private getMockOptimizedResponse(coordinates: SearchRequest): Promise<OptimizedBuildingResponse> {
+    // Check if coordinates are near Asian Palm Shibuya Honcho
+    const isNearAsianPalm = this.isNearAsianPalm(coordinates);
+    
+    if (isNearAsianPalm) {
+      // Return Asian Palm with real OSM ID
+      return Promise.resolve({
+        restaurant: {
+          id: "rest_003",
+          name: "アジアンパーム渋谷本町",
+          address: "東京都渋谷区本町2-14-4", 
+          openingHours: "11:30 - 14:30, 17:00 - 23:00",
+          rating: 4.0,
+          lat: 35.682179,
+          lng: 139.68194,
+          osmBuildingId: "way/1081064846"
+        },
+        osmBuildingId: "way/1081064846",
+        message: "建物が見つかりました (実際のOSM ID使用)"
+      });
+    }
+    
+    // For other locations, use mock data
     const mockOptimizedResponses: OptimizedBuildingResponse[] = [
       {
         restaurant: {
@@ -161,9 +169,9 @@ export class ApiService {
           rating: 4.2,
           lat: 35.6762,
           lng: 139.6503,
-          osmBuildingId: 123456
+          osmBuildingId: "way/123456"
         },
-        osmBuildingId: 123456,
+        osmBuildingId: "way/123456",
         message: "建物が見つかりました"
       },
       {
@@ -175,9 +183,9 @@ export class ApiService {
           rating: 4.7,
           lat: 35.6765,
           lng: 139.6510,
-          osmBuildingId: 789012
+          osmBuildingId: "way/789012"
         },
-        osmBuildingId: 789012,
+        osmBuildingId: "way/789012",
         message: "建物が見つかりました"
       },
       {
@@ -189,9 +197,9 @@ export class ApiService {
           rating: 4.0,
           lat: 35.6713,
           lng: 139.6845,
-          osmBuildingId: 456789
+          osmBuildingId: "way/919304243"
         },
-        osmBuildingId: 456789,
+        osmBuildingId: "way/919304243",
         message: "建物が見つかりました"
       }
     ];
@@ -202,5 +210,26 @@ export class ApiService {
     return new Promise(resolve => {
       setTimeout(() => resolve(randomResponse), 100);
     });
+  }
+
+  private isNearAsianPalm(coordinates: SearchRequest): boolean {
+    const asianPalmLat = 35.682179; // Actual Asian Palm coordinates
+    const asianPalmLng = 139.68194;
+    const threshold = 0.01; // About 1km radius for easier testing
+    
+    const distance = Math.sqrt(
+      Math.pow(coordinates.lat - asianPalmLat, 2) + 
+      Math.pow(coordinates.lng - asianPalmLng, 2)
+    );
+    
+    console.log('Coordinates check:', {
+      tapped: coordinates,
+      asianPalm: { lat: asianPalmLat, lng: asianPalmLng },
+      distance,
+      threshold,
+      isNear: distance < threshold
+    });
+    
+    return distance < threshold;
   }
 }

@@ -35,13 +35,22 @@ export class MapPage implements OnInit {
     effect(() => {
       const buildingPolygon = this.store.currentBuildingPolygon();
       const osmBuildingId = this.store.currentOsmBuildingId();
+      const optimizedMode = this.store.useOptimizedMode();
       
-      if (this.store.useOptimizedMode() && osmBuildingId) {
-        // Use OSM ID for optimized rendering
+      console.log('Map effect triggered:', {
+        optimizedMode,
+        osmBuildingId,
+        buildingPolygon: buildingPolygon ? 'present' : 'null'
+      });
+      
+      if (optimizedMode && osmBuildingId) {
+        console.log('Using OSM ID rendering:', osmBuildingId);
         this.mapService.renderBuildingPolygonByOsmId(osmBuildingId);
-      } else if (!this.store.useOptimizedMode() && buildingPolygon) {
-        // Use traditional polygon rendering
+      } else if (!optimizedMode && buildingPolygon) {
+        console.log('Using traditional polygon rendering');
         this.mapService.renderBuildingPolygon(buildingPolygon);
+      } else {
+        console.log('No rendering conditions met');
       }
     });
   }

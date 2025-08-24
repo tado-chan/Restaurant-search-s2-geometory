@@ -6,7 +6,7 @@ export interface Restaurant {
   rating: number;
   lat: number;
   lng: number;
-  osmBuildingId?: number;
+  osmBuildingId?: string;
 }
 
 export interface GeoJSONGeometry {
@@ -18,8 +18,12 @@ export interface GeoJSONFeature {
   type: 'Feature';
   properties: {
     building?: string;
-    osm_id?: number;
+    osm_id?: string;
     name?: string;
+    'building:levels'?: string;
+    'building:material'?: string;
+    'building:colour'?: string;
+    'roof:shape'?: string;
   };
   geometry: GeoJSONGeometry;
 }
@@ -32,7 +36,7 @@ export interface BuildingSearchResponse {
 
 export interface OptimizedBuildingResponse {
   restaurant: Restaurant;
-  osmBuildingId?: number;
+  osmBuildingId?: string;
   message?: string;
 }
 

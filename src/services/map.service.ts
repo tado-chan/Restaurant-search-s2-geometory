@@ -10,7 +10,7 @@ export class MapService {
   private map?: google.maps.Map;
   private loader: Loader;
   private currentBuildingPolygon?: google.maps.Polygon;
-  private osmBuildingCache = new Map<number, GeoJSONFeature>();
+  private osmBuildingCache = new Map<string, GeoJSONFeature>();
 
   constructor() {
     this.loader = new Loader({
@@ -122,37 +122,42 @@ export class MapService {
     }
   }
 
-  async renderBuildingPolygonByOsmId(osmBuildingId: number): Promise<void> {
+  async renderBuildingPolygonByOsmId(osmBuildingId: string): Promise<void> {
+    console.log('renderBuildingPolygonByOsmId called with:', osmBuildingId);
+    
     if (!this.map) throw new Error('Map not initialized');
     
     this.clearOverlays();
 
     // Check cache first
     let geoJsonFeature = this.osmBuildingCache.get(osmBuildingId);
+    console.log('Cache lookup result:', geoJsonFeature ? 'found' : 'not found');
     
     if (!geoJsonFeature) {
       // Fetch building data from OSM API or use mock data
       geoJsonFeature = await this.fetchBuildingFromOsm(osmBuildingId);
+      console.log('Fetched from OSM:', geoJsonFeature ? 'success' : 'failed');
       if (geoJsonFeature) {
         this.osmBuildingCache.set(osmBuildingId, geoJsonFeature);
       }
     }
 
     if (geoJsonFeature) {
+      console.log('Rendering polygon with coordinates:', geoJsonFeature.geometry.coordinates);
       this.renderBuildingPolygon(geoJsonFeature);
     } else {
       console.warn(`Building with OSM ID ${osmBuildingId} not found`);
     }
   }
 
-  private async fetchBuildingFromOsm(osmBuildingId: number): Promise<GeoJSONFeature | undefined> {
+  private async fetchBuildingFromOsm(osmBuildingId: string): Promise<GeoJSONFeature | undefined> {
     // Mock implementation - in real app, this would call Overpass API
-    const mockBuildings = new Map<number, GeoJSONFeature>([
-      [123456, {
+    const mockBuildings = new Map<string, GeoJSONFeature>([
+      ['way/123456', {
         type: 'Feature',
         properties: {
           building: 'residential',
-          osm_id: 123456,
+          osm_id: 'way/123456',
           name: 'Tokyo Ramen Building'
         },
         geometry: {
@@ -166,11 +171,11 @@ export class MapService {
           ]]
         }
       }],
-      [789012, {
+      ['way/789012', {
         type: 'Feature',
         properties: {
           building: 'commercial',
-          osm_id: 789012,
+          osm_id: 'way/789012',
           name: 'Sushi Zen Building'
         },
         geometry: {
@@ -184,21 +189,23 @@ export class MapService {
           ]]
         }
       }],
-      [456789, {
+      ['way/1081064846', {
         type: 'Feature',
         properties: {
-          building: 'commercial',
-          osm_id: 456789,
-          name: 'Asian Palm Building'
+          building: 'yes',
+          osm_id: 'way/1081064846',
+          name: 'Asian Palm Building',
+          'building:levels': '5',
+          'building:material': 'bricks'
         },
         geometry: {
           type: 'Polygon',
           coordinates: [[
-            [139.6843, 35.6711],
-            [139.6847, 35.6711],
-            [139.6847, 35.6715],
-            [139.6843, 35.6715],
-            [139.6843, 35.6711]
+            [139.6819139, 35.6821810],
+            [139.6819745, 35.6822094],
+            [139.6820436, 35.6821119],
+            [139.6819829, 35.6820835],
+            [139.6819139, 35.6821810]
           ]]
         }
       }]
