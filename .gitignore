@@ -8,12 +8,15 @@ yarn-error.log*
 /dist
 /build
 
+# Angular cache
+.angular/
+
 # Environment variables and sensitive config
 .env
 .env.local
 .env.production.local
 .env.development.local
-src/environments/environment.local.ts
+src/environments/environment.ts
 
 # Python virtual environment
 backend/venv/
@@ -60,4 +63,6 @@ jspm_packages/
 
 # Temporary folders
 tmp/
-temp/
+temp/.angular/
+node_modules/
+dist/
