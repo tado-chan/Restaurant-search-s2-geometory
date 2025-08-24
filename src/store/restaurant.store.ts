@@ -9,7 +9,7 @@ export class RestaurantStore {
   private _selectedTap = signal<MapTap | null>(null);
   private _currentRestaurant = signal<Restaurant | null>(null);
   private _currentBuildingPolygon = signal<GeoJSONFeature | null>(null);
-  private _currentOsmBuildingId = signal<number | null>(null);
+  private _currentOsmBuildingId = signal<string | null>(null);
   private _searchMessage = signal<string | null>(null);
   private _isLoading = signal<boolean>(false);
   private _error = signal<string | null>(null);
@@ -50,13 +50,16 @@ export class RestaurantStore {
   }
 
   async searchNearbyRestaurant(coordinates: MapTap): Promise<void> {
+    console.log('searchNearbyRestaurant called with:', coordinates);
     this._isLoading.set(true);
     this._error.set(null);
     this._selectedTap.set(coordinates);
 
     try {
       if (this._useOptimizedMode()) {
+        console.log('Using optimized mode');
         const response = await this.apiService.searchNearbyRestaurantOptimized(coordinates);
+        console.log('API response:', response);
         
         this._currentRestaurant.set(response.restaurant);
         this._currentOsmBuildingId.set(response.osmBuildingId || null);
@@ -64,6 +67,7 @@ export class RestaurantStore {
         this._searchMessage.set(response.message || null);
         this._isLoading.set(false);
         this._isSheetOpen.set(true);
+        console.log('Store updated, osmBuildingId:', response.osmBuildingId);
       } else {
         const response = await this.apiService.searchNearbyRestaurant(coordinates);
         
