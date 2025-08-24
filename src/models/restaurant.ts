@@ -23,6 +23,7 @@ export interface GeoJSONFeature {
     'building:levels'?: string;
     'building:material'?: string;
     'building:colour'?: string;
+    'building:use'?: string;
     'roof:shape'?: string;
   };
   geometry: GeoJSONGeometry;

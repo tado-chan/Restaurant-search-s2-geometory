@@ -153,6 +153,71 @@ export class MapService {
   private async fetchBuildingFromOsm(osmBuildingId: string): Promise<GeoJSONFeature | undefined> {
     // Mock implementation - in real app, this would call Overpass API
     const mockBuildings = new Map<string, GeoJSONFeature>([
+      // アジアンパーム渋谷本町 (実際のOSM ID使用)
+      ['way/1081064846', {
+        type: 'Feature',
+        properties: {
+          building: 'yes',
+          osm_id: 'way/1081064846',
+          name: 'Asian Palm Building',
+          'building:levels': '5',
+          'building:material': 'bricks'
+        },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [139.6819139, 35.6821810],
+            [139.6819745, 35.6822094],
+            [139.6820436, 35.6821119],
+            [139.6819829, 35.6820835],
+            [139.6819139, 35.6821810]
+          ]]
+        }
+      }],
+      // 東京オペラシティ (松阪牛よし田、叙々苑、大戸屋、そじ坊、田中そば店、サブウェイ)
+      ['way/234567890', {
+        type: 'Feature',
+        properties: {
+          building: 'commercial',
+          osm_id: 'way/234567890',
+          name: 'Tokyo Opera City Tower',
+          'building:levels': '54',
+          'building:material': 'steel_concrete',
+          'building:use': 'commercial'
+        },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [139.6860, 35.6830],
+            [139.6870, 35.6830],
+            [139.6870, 35.6842],
+            [139.6860, 35.6842],
+            [139.6860, 35.6830]
+          ]]
+        }
+      }],
+      // 永楽 (中華料理店)
+      ['way/345678901', {
+        type: 'Feature',
+        properties: {
+          building: 'commercial',
+          osm_id: 'way/345678901',
+          name: 'Eiraku Building',
+          'building:levels': '3',
+          'building:use': 'commercial'
+        },
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [139.6870, 35.6820],
+            [139.6880, 35.6820],
+            [139.6880, 35.6830],
+            [139.6870, 35.6830],
+            [139.6870, 35.6820]
+          ]]
+        }
+      }],
+      // Legacy mock data for backward compatibility
       ['way/123456', {
         type: 'Feature',
         properties: {
@@ -186,26 +251,6 @@ export class MapService {
             [139.6512, 35.6767],
             [139.6510, 35.6767],
             [139.6510, 35.6765]
-          ]]
-        }
-      }],
-      ['way/1081064846', {
-        type: 'Feature',
-        properties: {
-          building: 'yes',
-          osm_id: 'way/1081064846',
-          name: 'Asian Palm Building',
-          'building:levels': '5',
-          'building:material': 'bricks'
-        },
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [139.6819139, 35.6821810],
-            [139.6819745, 35.6822094],
-            [139.6820436, 35.6821119],
-            [139.6819829, 35.6820835],
-            [139.6819139, 35.6821810]
           ]]
         }
       }]
