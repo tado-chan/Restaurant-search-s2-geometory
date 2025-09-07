@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../environments/environment';
-import { BuildingSearchResponse, SearchRequest, OptimizedBuildingResponse } from '../models/restaurant';
+import { SearchRequest, BuildingSearchResponse } from '../models/restaurant';
 
 @Injectable({
   providedIn: 'root'
@@ -12,147 +12,25 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+
   async searchNearbyRestaurant(coordinates: SearchRequest): Promise<BuildingSearchResponse> {
     try {
-      console.log('Calling real API:', `${this.baseUrl}/search/`);
+      console.log('Calling API:', `${this.baseUrl}/search/optimized/`);
       const response = await firstValueFrom(
-        this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search/`, coordinates)
+        this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search/optimized/`, coordinates)
       );
       console.log('API Response:', response);
       return response;
     } catch (error) {
       console.error('API Error, falling back to mock data:', error);
-      return this.getMockResponse();
+      return this.getMockResponse(coordinates);
     }
   }
 
-  async searchNearbyRestaurantOptimized(coordinates: SearchRequest): Promise<OptimizedBuildingResponse> {
-    try {
-      console.log('Calling optimized API:', `${this.baseUrl}/search/optimized/`);
-      const response = await firstValueFrom(
-        this.http.post<OptimizedBuildingResponse>(`${this.baseUrl}/search/optimized/`, coordinates)
-      );
-      console.log('Optimized API Response:', response);
-      return response;
-    } catch (error) {
-      console.error('API Error, falling back to mock data:', error);
-      return this.getMockOptimizedResponse(coordinates);
-    }
-  }
 
-  private getMockResponse(): Promise<BuildingSearchResponse> {
-    // Mock GeoJSON building polygon for development
-    const mockBuildingPolygon = {
-      type: "Feature" as const,
-      properties: {
-        building: "residential",
-        osm_id: "way/123456",
-        name: "Mock Building"
-      },
-      geometry: {
-        type: "Polygon" as const,
-        coordinates: [
-          [
-            [139.6503, 35.6762], // SW corner
-            [139.6505, 35.6762], // SE corner
-            [139.6505, 35.6764], // NE corner
-            [139.6503, 35.6764], // NW corner
-            [139.6503, 35.6762]  // Close polygon
-          ]
-        ]
-      }
-    };
-
-    // Mock data for development
-    const mockResponses: BuildingSearchResponse[] = [
-      {
-        restaurant: {
-          id: "rest_001",
-          name: "東京ラーメン横丁",
-          address: "東京都渋谷区1-2-3",
-          openingHours: "11:00 - 22:00",
-          rating: 4.2,
-          lat: 35.6762,
-          lng: 139.6503,
-          osmBuildingId: "way/123456"
-        },
-        buildingPolygon: mockBuildingPolygon,
-        message: "建物が見つかりました"
-      },
-      {
-        restaurant: {
-          id: "rest_002", 
-          name: "築地寿司 禅",
-          address: "東京都中央区銀座4-5-6",
-          openingHours: "17:00 - 24:00",
-          rating: 4.7,
-          lat: 35.6765,
-          lng: 139.6510,
-          osmBuildingId: "way/789012"
-        },
-        buildingPolygon: {
-          ...mockBuildingPolygon,
-          geometry: {
-            ...mockBuildingPolygon.geometry,
-            coordinates: [
-              [
-                [139.6510, 35.6765],
-                [139.6512, 35.6765],
-                [139.6512, 35.6767],
-                [139.6510, 35.6767],
-                [139.6510, 35.6765]
-              ]
-            ]
-          }
-        },
-        message: "建物が見つかりました"
-      },
-      {
-        restaurant: {
-          id: "rest_003",
-          name: "アジアンパーム渋谷本町",
-          address: "東京都渋谷区本町2-14-4", 
-          openingHours: "11:30 - 14:30, 17:00 - 23:00",
-          rating: 4.0,
-          lat: 35.6713,
-          lng: 139.6845,
-          osmBuildingId: "way/919304243"
-        },
-        buildingPolygon: {
-          ...mockBuildingPolygon,
-          properties: {
-            building: "commercial",
-            osm_id: "way/919304243",
-            name: "Asian Palm Building"
-          },
-          geometry: {
-            ...mockBuildingPolygon.geometry,
-            coordinates: [
-              [
-                [139.6843, 35.6711],
-                [139.6847, 35.6711],
-                [139.6847, 35.6715],
-                [139.6843, 35.6715],
-                [139.6843, 35.6711]
-              ]
-            ]
-          }
-        },
-        message: "建物が見つかりました"
-      }
-    ];
-
-    const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-    
-    // Simulate API delay
-    return new Promise(resolve => {
-      setTimeout(() => resolve(randomResponse), 500);
-    });
-  }
-
-  private getMockOptimizedResponse(coordinates: SearchRequest): Promise<OptimizedBuildingResponse> {
+  private getMockResponse(coordinates: SearchRequest): Promise<BuildingSearchResponse> {
     // Database of real restaurants within 1km of Hatsudai Station
-    const hatsudaiRestaurants: OptimizedBuildingResponse[] = [
+    const hatsudaiRestaurants: BuildingSearchResponse[] = [
       {
         restaurant: {
           id: "rest_001",
@@ -276,7 +154,7 @@ export class ApiService {
     });
   }
 
-  private findClosestRestaurant(coordinates: SearchRequest, restaurants: OptimizedBuildingResponse[]): OptimizedBuildingResponse {
+  private findClosestRestaurant(coordinates: SearchRequest, restaurants: BuildingSearchResponse[]): BuildingSearchResponse {
     let closestRestaurant = restaurants[0];
     let shortestDistance = this.calculateDistance(coordinates, closestRestaurant.restaurant);
     

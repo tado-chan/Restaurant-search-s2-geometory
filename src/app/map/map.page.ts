@@ -31,26 +31,17 @@ export class MapPage implements OnInit {
   protected store = inject(RestaurantStore);
 
   constructor() {
-    // Effect to render building polygon when buildingPolygon or osmBuildingId changes
+    // Effect to render building polygon when osmBuildingId changes
     effect(() => {
-      const buildingPolygon = this.store.currentBuildingPolygon();
       const osmBuildingId = this.store.currentOsmBuildingId();
-      const optimizedMode = this.store.useOptimizedMode();
       
-      console.log('Map effect triggered:', {
-        optimizedMode,
-        osmBuildingId,
-        buildingPolygon: buildingPolygon ? 'present' : 'null'
-      });
+      console.log('Map effect triggered:', { osmBuildingId });
       
-      if (optimizedMode && osmBuildingId) {
+      if (osmBuildingId) {
         console.log('Using OSM ID rendering:', osmBuildingId);
         this.mapService.renderBuildingPolygonByOsmId(osmBuildingId);
-      } else if (!optimizedMode && buildingPolygon) {
-        console.log('Using traditional polygon rendering');
-        this.mapService.renderBuildingPolygon(buildingPolygon);
       } else {
-        console.log('No rendering conditions met');
+        console.log('No OSM ID available');
       }
     });
   }
@@ -94,8 +85,4 @@ export class MapPage implements OnInit {
     return '★'.repeat(fullStars) + (hasHalfStar ? '☆' : '') + '☆'.repeat(5 - Math.ceil(rating));
   }
 
-  protected toggleOptimizedMode() {
-    const currentMode = this.store.useOptimizedMode();
-    this.store.setOptimizedMode(!currentMode);
-  }
 }

@@ -9,8 +9,7 @@ urlpatterns = [
     path('health/', views.health_check, name='health_check'),
     
     # レストラン検索
-    path('search/', views.search_restaurant, name='search_restaurant'),
-    path('search/optimized/', views.search_restaurant_optimized, name='search_restaurant_optimized'),
+    path('search/optimized/', views.search_restaurant, name='search_restaurant'),
     path('search/location/', views.search_restaurants_by_location, name='search_by_location'),
     
     # レストラン情報

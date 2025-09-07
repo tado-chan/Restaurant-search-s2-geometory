@@ -31,12 +31,6 @@ export interface GeoJSONFeature {
 
 export interface BuildingSearchResponse {
   restaurant: Restaurant;
-  buildingPolygon?: GeoJSONFeature;
-  message?: string;
-}
-
-export interface OptimizedBuildingResponse {
-  restaurant: Restaurant;
   osmBuildingId?: string;
   message?: string;
 }

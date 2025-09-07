@@ -18,67 +18,8 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 def search_restaurant(request):
     """
-    最寄りレストラン検索API（建物ポリゴン付き）
+    最寄りレストラン検索API（OSM ID使用）
     POST /api/search
-    """
-    try:
-        # リクエストデータ取得
-        data = request.data
-        lat = data.get('lat')
-        lng = data.get('lng')
-        
-        # 必須パラメータチェック
-        if lat is None or lng is None:
-            return Response({
-                'error': '緯度(lat)と経度(lng)は必須です'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # 型変換
-        try:
-            lat = float(lat)
-            lng = float(lng)
-        except (ValueError, TypeError):
-            return Response({
-                'error': '緯度・経度は数値で入力してください'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # 座標検証
-        validation = ValidationService.validate_coordinates(lat, lng)
-        if not validation['is_valid']:
-            return Response({
-                'error': ', '.join(validation['errors'])
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # データベースセッション取得
-        db = next(get_db_session())
-        
-        try:
-            # サービス実行
-            service = RestaurantSearchService(db)
-            result = service.search_nearest_restaurant(lat, lng)
-            
-            if not result:
-                return Response({
-                    'error': '近くにレストランが見つかりませんでした'
-                }, status=status.HTTP_404_NOT_FOUND)
-            
-            return Response(result, status=status.HTTP_200_OK)
-            
-        finally:
-            db.close()
-            
-    except Exception as e:
-        logger.error(f"Restaurant search error: {str(e)}")
-        return Response({
-            'error': 'サーバー内部エラーが発生しました'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['POST'])
-def search_restaurant_optimized(request):
-    """
-    最寄りレストラン検索API（OSM ID最適化版）
-    POST /api/search/optimized
     """
     try:
         # リクエストデータ取得
@@ -127,7 +68,7 @@ def search_restaurant_optimized(request):
             db.close()
             
     except Exception as e:
-        logger.error(f"Optimized restaurant search error: {str(e)}")
+        logger.error(f"Restaurant search error: {str(e)}")
         return Response({
             'error': 'サーバー内部エラーが発生しました'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

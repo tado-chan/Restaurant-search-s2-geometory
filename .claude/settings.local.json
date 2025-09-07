@@ -12,7 +12,8 @@
       "Bash(true)",
       "Bash(npm start)",
       "Bash(ionic init:*)",
-      "Bash(ionic serve:*)"
+      "Bash(ionic serve:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

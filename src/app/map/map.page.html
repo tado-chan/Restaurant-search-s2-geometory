@@ -1,9 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Restaurant Search</ion-title>
-    <ion-button slot="end" fill="clear" (click)="toggleOptimizedMode()">
-      {{ store.useOptimizedMode() ? 'OSM最適化: ON' : 'OSM最適化: OFF' }}
-    </ion-button>
   </ion-toolbar>
 </ion-header>
 
@@ -53,24 +50,13 @@
               </ion-label>
             </ion-item>
 
-            @if (store.currentBuildingPolygon() || store.currentOsmBuildingId()) {
+            @if (store.currentOsmBuildingId()) {
               <ion-item lines="none" class="building-info">
                 <ion-label>
                   <h3>建物情報</h3>
                   <ion-text color="medium">
-                    @if (store.useOptimizedMode() && store.currentOsmBuildingId()) {
-                      <p>OSM ID: {{ store.currentOsmBuildingId() }}</p>
-                      <small>🚀 最適化モード: OSM IDから建物形状を高速取得</small>
-                    } @else if (store.currentBuildingPolygon()) {
-                      <p>建物種類: {{ store.currentBuildingPolygon()?.properties?.building || '建物' }}</p>
-                      @if (store.currentBuildingPolygon()?.properties?.name) {
-                        <p>建物名: {{ store.currentBuildingPolygon()?.properties?.name }}</p>
-                      }
-                      @if (store.currentBuildingPolygon()?.properties?.osm_id) {
-                        <p>OSM ID: {{ store.currentBuildingPolygon()?.properties?.osm_id }}</p>
-                      }
-                      <small>🐌 従来モード: GeoJSONポリゴンデータを使用</small>
-                    }
+                    <p>OSM ID: {{ store.currentOsmBuildingId() }}</p>
+                    <small>OSM IDから建物形状を高速取得</small>
                     <br><small>薄い青色の塗りつぶし: 実際の建物ポリゴン (OpenStreetMap)</small>
                   </ion-text>
                 </ion-label>
