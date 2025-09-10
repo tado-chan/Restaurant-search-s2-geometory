@@ -12,18 +12,69 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  async searchBuildingByLocation(coordinates: SearchRequest): Promise<any> {
+    // PostGIS空間検索API - 指定座標の建物を取得
+    try {
+      console.log('Calling PostGIS Spatial Search:', `${this.baseUrl}/search/spatial/`);
+      const response = await firstValueFrom(
+        this.http.post<any>(`${this.baseUrl}/search/spatial/`, coordinates)
+      );
+      console.log('Spatial Search Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Spatial Search Error:', error);
+      throw error;
+    }
+  }
+
+  async searchBuildingsNearLocation(coordinates: SearchRequest, radius: number = 100): Promise<any> {
+    // PostGIS周辺建物検索API
+    try {
+      const requestData = { ...coordinates, radius };
+      console.log('Calling Nearby Buildings Search:', `${this.baseUrl}/search/spatial/nearby/`);
+      const response = await firstValueFrom(
+        this.http.post<any>(`${this.baseUrl}/search/spatial/nearby/`, requestData)
+      );
+      console.log('Nearby Buildings Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Nearby Buildings Search Error:', error);
+      throw error;
+    }
+  }
+
 
   async searchNearbyRestaurant(coordinates: SearchRequest): Promise<BuildingSearchResponse> {
     try {
-      console.log('Calling API:', `${this.baseUrl}/search/optimized/`);
+      console.log('Calling PostGIS Spatial API:', `${this.baseUrl}/search/spatial/`);
       const response = await firstValueFrom(
-        this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search/optimized/`, coordinates)
+        this.http.post<any>(`${this.baseUrl}/search/spatial/`, coordinates)
       );
-      console.log('API Response:', response);
-      return response;
+      console.log('Spatial API Response:', response);
+      
+      // PostGIS APIレスポンスを既存フォーマットに変換
+      const convertedResponse: BuildingSearchResponse = {
+        osmBuildingId: response.osmId,
+        message: response.message,
+        restaurant: null // 空間検索では建物のみ取得
+      };
+      
+      return convertedResponse;
     } catch (error) {
-      console.error('API Error, falling back to mock data:', error);
-      return this.getMockResponse(coordinates);
+      console.error('Spatial API Error, falling back to restaurant search:', error);
+      
+      // フォールバック: 従来のレストラン検索
+      try {
+        console.log('Fallback to restaurant search:', `${this.baseUrl}/search/optimized/`);
+        const fallbackResponse = await firstValueFrom(
+          this.http.post<BuildingSearchResponse>(`${this.baseUrl}/search/optimized/`, coordinates)
+        );
+        console.log('Fallback API Response:', fallbackResponse);
+        return fallbackResponse;
+      } catch (fallbackError) {
+        console.error('Both APIs failed, using mock data:', fallbackError);
+        return this.getMockResponse(coordinates);
+      }
     }
   }
 

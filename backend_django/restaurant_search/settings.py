@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',  # PostGIS support
     'rest_framework',
     'corsheaders',
     'restaurants',
@@ -64,15 +65,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'restaurant_search.wsgi.application'
 
-# Database
+# Database - PostGIS Support
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DB_NAME', 'restaurant_search_app'),
-        'USER': os.getenv('DB_USER', 'root'),
+        'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '3306'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'OPTIONS': {
+            'charset': 'utf8',
+        },
+    },
+    # Keep MySQL as backup for migration
+    'mysql_backup': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('MYSQL_DB_NAME', 'restaurant_search_app'),
+        'USER': os.getenv('MYSQL_DB_USER', 'root'),
+        'PASSWORD': os.getenv('MYSQL_DB_PASSWORD', ''),
+        'HOST': os.getenv('MYSQL_DB_HOST', 'localhost'),
+        'PORT': os.getenv('MYSQL_DB_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
         },
@@ -109,5 +122,8 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
 
-# Custom SQLAlchemy integration
-SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{os.getenv('DB_USER', 'root')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME', 'restaurant_search_app')}?charset=utf8mb4"
+# Custom SQLAlchemy integration - PostGIS Support
+SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'restaurant_search_app')}"
+
+# Backup MySQL connection for migration
+SQLALCHEMY_MYSQL_URL = f"mysql+pymysql://{os.getenv('MYSQL_DB_USER', 'root')}:{os.getenv('MYSQL_DB_PASSWORD', '')}@{os.getenv('MYSQL_DB_HOST', 'localhost')}:{os.getenv('MYSQL_DB_PORT', '3306')}/{os.getenv('MYSQL_DB_NAME', 'restaurant_search_app')}?charset=utf8mb4"

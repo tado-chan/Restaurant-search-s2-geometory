@@ -8,7 +8,11 @@ urlpatterns = [
     # ヘルスチェック
     path('health/', views.health_check, name='health_check'),
     
-    # レストラン検索
+    # PostGIS空間検索（新機能）
+    path('search/spatial/', views.search_building_by_location, name='search_building_by_location'),
+    path('search/spatial/nearby/', views.search_buildings_near_location, name='search_buildings_near_location'),
+    
+    # レストラン検索（従来機能）
     path('search/optimized/', views.search_restaurant, name='search_restaurant'),
     path('search/location/', views.search_restaurants_by_location, name='search_by_location'),
     

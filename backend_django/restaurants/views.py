@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import get_db_session
-from .services import RestaurantSearchService, OSMBuildingService, ValidationService
+from .services import RestaurantSearchService, OSMBuildingService, ValidationService, SpatialSearchService
 import json
 import logging
 
@@ -291,4 +291,136 @@ def health_check(request):
         return Response({
             'status': 'ERROR',
             'message': 'Database connection failed'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def search_building_by_location(request):
+    """
+    PostGIS空間検索API（新機能）
+    POST /api/search/spatial
+    指定座標を含む建物のOSM IDを返す
+    """
+    try:
+        # リクエストデータ取得
+        data = request.data
+        lat = data.get('lat')
+        lng = data.get('lng')
+        
+        # 必須パラメータチェック
+        if lat is None or lng is None:
+            return Response({
+                'error': '緯度(lat)と経度(lng)は必須です'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 型変換
+        try:
+            lat = float(lat)
+            lng = float(lng)
+        except (ValueError, TypeError):
+            return Response({
+                'error': '緯度・経度は数値で入力してください'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 座標検証
+        validation = ValidationService.validate_coordinates(lat, lng)
+        if not validation['is_valid']:
+            return Response({
+                'error': ', '.join(validation['errors'])
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # データベースセッション取得
+        db = next(get_db_session())
+        
+        try:
+            # 空間検索サービス実行
+            service = SpatialSearchService(db)
+            result = service.find_building_at_location(lat, lng)
+            
+            if not result:
+                return Response({
+                    'error': 'この座標には建物が見つかりませんでした',
+                    'coordinates': {'lat': lat, 'lng': lng}
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            return Response(result, status=status.HTTP_200_OK)
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Spatial search error: {str(e)}")
+        return Response({
+            'error': 'サーバー内部エラーが発生しました'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def search_buildings_near_location(request):
+    """
+    PostGIS周辺建物検索API
+    POST /api/search/spatial/nearby
+    指定座標周辺の建物を検索
+    """
+    try:
+        # リクエストデータ取得
+        data = request.data
+        lat = data.get('lat')
+        lng = data.get('lng')
+        radius = data.get('radius', 100)  # デフォルト100メートル
+        
+        # 必須パラメータチェック
+        if lat is None or lng is None:
+            return Response({
+                'error': '緯度(lat)と経度(lng)は必須です'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 型変換
+        try:
+            lat = float(lat)
+            lng = float(lng)
+            radius = float(radius)
+        except (ValueError, TypeError):
+            return Response({
+                'error': '緯度・経度・半径は数値で入力してください'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 座標検証
+        validation = ValidationService.validate_coordinates(lat, lng)
+        if not validation['is_valid']:
+            return Response({
+                'error': ', '.join(validation['errors'])
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 半径検証
+        if radius <= 0 or radius > 1000:
+            return Response({
+                'error': '半径は1～1000メートルの範囲で指定してください'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # データベースセッション取得
+        db = next(get_db_session())
+        
+        try:
+            # 空間検索サービス実行
+            service = SpatialSearchService(db)
+            results = service.find_buildings_near_location(lat, lng, radius)
+            
+            return Response({
+                'buildings': results,
+                'count': len(results),
+                'search_params': {
+                    'lat': lat,
+                    'lng': lng,
+                    'radius_meters': radius
+                }
+            }, status=status.HTTP_200_OK)
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Nearby spatial search error: {str(e)}")
+        return Response({
+            'error': 'サーバー内部エラーが発生しました'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,14 +1,16 @@
 """
-SQLAlchemy models for Restaurant Search App
+SQLAlchemy models for Restaurant Search App with PostGIS Support
 """
 from sqlalchemy import create_engine, Column, String, Numeric, Integer, Text, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from geoalchemy2 import Geometry
+from geoalchemy2.functions import ST_AsGeoJSON, ST_GeomFromText, ST_Contains, ST_Point
 from django.conf import settings
 import json
 from typing import List, Dict, Any
 
-# SQLAlchemy setup
+# SQLAlchemy setup with PostGIS
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -50,7 +52,7 @@ class Restaurant(Base):
 
 class OSMBuilding(Base):
     """
-    OpenStreetMap建物データモデル
+    OpenStreetMap建物データモデル with PostGIS Support
     """
     __tablename__ = "osm_buildings"
     
@@ -60,7 +62,8 @@ class OSMBuilding(Base):
     building_levels = Column(Integer)
     building_material = Column(String(50))
     building_use = Column(String(50), index=True)
-    geometry_coordinates = Column(Text, nullable=False)  # JSON string
+    geometry = Column(Geometry('POLYGON', srid=4326), nullable=False)  # PostGIS geometry column
+    geometry_coordinates = Column(Text)  # Keep for backward compatibility
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -77,14 +80,29 @@ class OSMBuilding(Base):
         }
     
     def get_geometry_coordinates(self) -> List[List[List[float]]]:
-        """JSON形式の座標データをパース"""
-        try:
-            return json.loads(self.geometry_coordinates)
-        except (json.JSONDecodeError, TypeError):
-            return []
+        """PostGIS geometryから座標データを取得"""
+        if self.geometry is not None:
+            # PostGIS geometryからGeoJSONを取得
+            geojson_str = str(ST_AsGeoJSON(self.geometry))
+            try:
+                geojson = json.loads(geojson_str)
+                return geojson.get('coordinates', [])
+            except (json.JSONDecodeError, TypeError):
+                pass
+        
+        # Fallback to old JSON format
+        if self.geometry_coordinates:
+            try:
+                return json.loads(self.geometry_coordinates)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        
+        return []
     
     def to_geojson_feature(self) -> Dict[str, Any]:
         """GeoJSON Feature形式に変換"""
+        coordinates = self.get_geometry_coordinates()
+        
         return {
             'type': 'Feature',
             'properties': {
@@ -97,9 +115,17 @@ class OSMBuilding(Base):
             },
             'geometry': {
                 'type': 'Polygon',
-                'coordinates': self.get_geometry_coordinates()
+                'coordinates': coordinates
             }
         }
+    
+    @classmethod
+    def find_by_point(cls, session, lat: float, lng: float):
+        """指定座標を含む建物を検索（PostGIS spatial query）"""
+        point = ST_Point(lng, lat)
+        return session.query(cls).filter(
+            ST_Contains(cls.geometry, point)
+        ).first()
     
     def __repr__(self):
         return f"<OSMBuilding(osm_id='{self.osm_id}', name='{self.name}')>"

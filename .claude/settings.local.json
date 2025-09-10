@@ -13,7 +13,11 @@
       "Bash(npm start)",
       "Bash(ionic init:*)",
       "Bash(ionic serve:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx ng build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:www.openstreetmap.org)"
     ],
     "deny": []
   }

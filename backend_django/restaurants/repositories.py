@@ -1,9 +1,10 @@
 """
-Repository layer for data access operations
+Repository layer for data access operations with PostGIS Support
 """
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
+from geoalchemy2.functions import ST_Contains, ST_Point, ST_Distance, ST_DWithin
 from .models import Restaurant, OSMBuilding
 import math
 
@@ -79,7 +80,7 @@ class RestaurantRepository:
 
 class OSMBuildingRepository:
     """
-    OSM建物データアクセス用リポジトリ
+    OSM建物データアクセス用リポジトリ with PostGIS Spatial Queries
     """
     
     def __init__(self, db: Session):
@@ -108,6 +109,39 @@ class OSMBuildingRepository:
             .filter(OSMBuilding.building_use == 'commercial')
             .all()
         )
+    
+    def find_building_by_point(self, lat: float, lng: float) -> Optional[OSMBuilding]:
+        """
+        指定座標を含む建物をPostGISで検索（新機能）
+        Returns: OSMBuilding or None
+        """
+        point = ST_Point(lng, lat)  # PostGIS Point (lng, lat order)
+        
+        return (
+            self.db.query(OSMBuilding)
+            .filter(ST_Contains(OSMBuilding.geometry, point))
+            .first()
+        )
+    
+    def find_buildings_near_point(self, lat: float, lng: float, distance_meters: float = 100) -> List[Tuple[OSMBuilding, float]]:
+        """
+        指定座標周辺の建物を距離付きで検索
+        Returns: List[(OSMBuilding, distance_meters)]
+        """
+        point = ST_Point(lng, lat)
+        
+        # PostGISのST_DWithinで範囲内検索 + ST_Distanceで距離計算
+        results = (
+            self.db.query(
+                OSMBuilding,
+                ST_Distance(OSMBuilding.geometry, point).label('distance')
+            )
+            .filter(ST_DWithin(OSMBuilding.geometry, point, distance_meters))
+            .order_by('distance')
+            .all()
+        )
+        
+        return [(building, float(distance)) for building, distance in results]
 
 
 class RestaurantSearchRepository:

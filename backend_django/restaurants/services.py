@@ -7,6 +7,61 @@ from .repositories import RestaurantRepository, OSMBuildingRepository, Restauran
 from .models import Restaurant, OSMBuilding
 
 
+class SpatialSearchService:
+    """
+    PostGIS空間検索ビジネスロジック（新機能）
+    """
+    
+    def __init__(self, db: Session):
+        self.db = db
+        self.osm_building_repo = OSMBuildingRepository(db)
+    
+    def find_building_at_location(self, lat: float, lng: float) -> Optional[Dict[str, Any]]:
+        """
+        指定座標の建物を検索（メインの新機能）
+        Returns: building info or None
+        """
+        building = self.osm_building_repo.find_building_by_point(lat, lng)
+        
+        if not building:
+            return None
+        
+        # レスポンス構築
+        response = {
+            'osmId': building.osm_id,
+            'name': building.name or '建物',
+            'buildingType': building.building_type,
+            'buildingLevels': building.building_levels,
+            'buildingUse': building.building_use,
+            'message': f'{building.name or "建物"}が見つかりました',
+            'coordinates': {
+                'lat': lat,
+                'lng': lng
+            }
+        }
+        
+        return response
+    
+    def find_buildings_near_location(self, lat: float, lng: float, radius_meters: float = 100) -> List[Dict[str, Any]]:
+        """
+        指定座標周辺の建物を検索
+        """
+        results = self.osm_building_repo.find_buildings_near_point(lat, lng, radius_meters)
+        
+        response_list = []
+        for building, distance in results:
+            response_list.append({
+                'osmId': building.osm_id,
+                'name': building.name or '建物',
+                'buildingType': building.building_type,
+                'buildingUse': building.building_use,
+                'distance': distance,
+                'message': f'{building.name or "建物"}（距離: {distance:.1f}m）'
+            })
+        
+        return response_list
+
+
 class RestaurantSearchService:
     """
     レストラン検索ビジネスロジック
